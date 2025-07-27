@@ -1,12 +1,17 @@
 package com.blogplatform.simpleblogplatform.model;
 
+// Import the Entity annotation from the Jakarta Persistence package.
+// This is the standard API for persistence in modern Spring Boot applications.
+import jakarta.persistence.Entity;
+
 import java.time.LocalDateTime;
 
 /**
  * Represents a blog post entity.
- * This is a POJO (Plain Old Java Object) that defines the structure of a post.
- * In the next steps, we will annotate this class to map it to a database table.
+ * The @Entity annotation marks this class as a JPA entity,
+ * telling Hibernate to create a 'post' table for it in the database.
  */
+@Entity // <-- THIS IS THE NEW ANNOTATION
 public class Post {
 
     // A unique identifier for the post. We use the Long wrapper class instead of the
