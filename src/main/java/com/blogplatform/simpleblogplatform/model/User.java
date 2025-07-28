@@ -1,14 +1,23 @@
 package com.blogplatform.simpleblogplatform.model;
 
+// Import the necessary JPA annotations.
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
 /**
  * Represents a user entity in the application.
- * This POJO defines the structure for a user account, which will be fundamental
- * for authentication and authorization.
+ * The @Entity annotation makes this a managed JPA entity.
  */
+@Entity // <-- NEW: Mark this class as a JPA entity.
 public class User {
 
-    // A unique identifier for the user. As with the Post entity, we use the Long
-    // wrapper class so it can be null before the entity is saved to the database.
+    // @Id marks this field as the primary key.
+    @Id
+    // @GeneratedValue configures the primary key generation strategy.
+    // GenerationType.IDENTITY delegates ID generation to the database's auto-increment column.
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // <-- NEW: Configure auto-generation.
     private Long id;
 
     // The user's unique name for logging in. We will later add a database constraint
