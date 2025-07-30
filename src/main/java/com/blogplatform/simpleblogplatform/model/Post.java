@@ -1,45 +1,69 @@
 package com.blogplatform.simpleblogplatform.model;
 
 import jakarta.persistence.Entity;
-// Import the necessary annotations for primary key mapping and generation.
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+// Import the necessary annotations for defining relationships.
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 import java.time.LocalDateTime;
 
 /**
  * Represents a blog post entity.
- * The @Entity annotation marks this class as a JPA entity,
- * telling Hibernate to create a 'post' table for it in the database.
+ * This class now includes a relationship to the User entity, representing the author.
  */
 @Entity
 public class Post {
 
-    // The @Id annotation specifies the primary key of an entity.
     @Id
-    // @GeneratedValue provides for the specification of generation strategies for the values of primary keys.
-    // GenerationType.IDENTITY indicates that the persistence provider must assign primary keys for the entity
-    // using a database identity column. This is the most common strategy for auto-incrementing columns.
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // The title of the blog post.
     private String title;
 
-    // The main content of the blog post. In a real database, this would typically
-    // be mapped to a TEXT or CLOB type to allow for very long content.
     private String content;
 
-    // The date and time when the post was created.
     private LocalDateTime createdAt;
 
-    // A no-argument constructor is required by JPA.
+    // --- NEW: Defining the relationship to the User entity ---
+
+    /**
+     * The @ManyToOne annotation establishes a many-to-one relationship
+     * between Post and User. This means many posts can belong to one user (the author).
+     * By default, this relationship is EAGERLY fetched, meaning that whenever a Post is loaded,
+     * its associated User will also be loaded from the database immediately.
+     */
+    @ManyToOne
+    /**
+     * The @JoinColumn annotation specifies the foreign key column in the 'post' table.
+     * The 'name' attribute defines the name of the foreign key column, which will be 'user_id'.
+     * The 'referencedColumnName' attribute (which we are omitting here for simplicity,
+     * as JPA can infer it) would specify which column in the 'user' table this foreign key
+     * refers to (by default, it's the primary key, 'id').
+     */
+    @JoinColumn(name = "user_id")
+    private User user; // This field represents the author of the post.
+
     public Post() {
     }
 
     // --- Getters and Setters ---
 
+    // ... (existing getters and setters for id, title, content, createdAt)
+
+    // --- NEW: Getters and setters for the user field ---
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    // The existing getters and setters remain unchanged below.
     public Long getId() {
         return id;
     }

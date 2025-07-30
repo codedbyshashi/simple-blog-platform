@@ -20,6 +20,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // <-- NEW: Configure auto-generation.
     private Long id;
 
+
     // The user's unique name for logging in. We will later add a database constraint
     // to ensure no two users can have the same username.
     private String username;
