@@ -4,14 +4,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-// Import the necessary annotations and the Post class for the relationship.
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import java.time.LocalDateTime;
 
 /**
  * Represents a comment entity made by a user on a post.
- * This is the OWNING side of the bidirectional relationship with Post.
+ * This entity is fully relational, linked to both a Post and a User (the author).
  */
 @Entity
 public class Comment {
@@ -24,38 +23,40 @@ public class Comment {
 
     private LocalDateTime createdAt;
 
-    // --- NEW: Defining the relationship to the Post entity ---
+    @ManyToOne
+    @JoinColumn(name = "post_id", nullable = false)
+    private Post post;
+
+    // --- NEW: Defining the relationship to the User entity (the author) ---
 
     /**
-     * The @ManyToOne annotation establishes a many-to-one relationship.
-     * This means many comments can be associated with a single post.
-     * This is the OWNING side of the relationship because it contains the foreign key.
+     * Establishes a many-to-one relationship between Comment and User.
+     * Many comments can be written by a single user.
+     * This makes the Comment entity the owning side of this relationship.
      */
     @ManyToOne
     /**
-     * The @JoinColumn annotation specifies the foreign key column in this entity's table ('comment').
-     * 'name = "post_id"' explicitly names the foreign key column 'post_id'.
-     * This column will store the 'id' of the Post to which this comment belongs.
-     * 'nullable = false' is an optional but good practice constraint, ensuring that a comment
-     * can NEVER exist without being associated with a post.
+     * Specifies the foreign key column in the 'comment' table for this relationship.
+     * The column will be named 'user_id' and will store the ID of the author.
+     * `nullable = false` ensures that a comment must always have an author.
      */
-    @JoinColumn(name = "post_id", nullable = false)
-    private Post post;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     public Comment() {
     }
 
     // --- Getters and Setters ---
-    // (Existing getters and setters for id, content, createdAt)
+    // (Existing getters and setters for id, content, createdAt, post)
 
-    // --- NEW: Getters and setters for the post field ---
+    // --- NEW: Getters and setters for the user field ---
 
-    public Post getPost() {
-        return post;
+    public User getUser() {
+        return user;
     }
 
-    public void setPost(Post post) {
-        this.post = post;
+    public void setUser(User user) {
+        this.user = user;
     }
 
     // The rest of the existing getters and setters remain unchanged below.
@@ -83,14 +84,23 @@ public class Comment {
         this.createdAt = createdAt;
     }
 
+    public Post getPost() {
+        return post;
+    }
+
+    public void setPost(Post post) {
+        this.post = post;
+    }
+
     @Override
     public String toString() {
-        // We can update the toString to include the post's ID for better debugging.
+        // We can update the toString for even better debugging.
         return "Comment{" +
                 "id=" + id +
                 ", content='" + content + '\'' +
                 ", createdAt=" + createdAt +
-                ", postId=" + (post != null ? post.getId() : "null") + // Avoid NullPointerException
+                ", postId=" + (post != null ? post.getId() : "null") +
+                ", userId=" + (user != null ? user.getId() : "null") + // Add author's ID
                 '}';
     }
 }
