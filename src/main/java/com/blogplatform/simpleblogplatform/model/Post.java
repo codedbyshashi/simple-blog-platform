@@ -1,18 +1,21 @@
 package com.blogplatform.simpleblogplatform.model;
 
+// Import the necessary new classes for the collection and the relationship.
+import jakarta.persistence.OneToMany;
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-// Import the necessary annotations for defining relationships.
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-
 import java.time.LocalDateTime;
 
 /**
  * Represents a blog post entity.
- * This class now includes a relationship to the User entity, representing the author.
+ * This class now includes relationships to its author (User) and its comments.
  */
 @Entity
 public class Post {
@@ -27,43 +30,45 @@ public class Post {
 
     private LocalDateTime createdAt;
 
-    // --- NEW: Defining the relationship to the User entity ---
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    // --- NEW: Defining the relationship to the Comment entity ---
 
     /**
-     * The @ManyToOne annotation establishes a many-to-one relationship
-     * between Post and User. This means many posts can belong to one user (the author).
-     * By default, this relationship is EAGERLY fetched, meaning that whenever a Post is loaded,
-     * its associated User will also be loaded from the database immediately.
+     * The @OneToMany annotation establishes a one-to-many relationship
+     * between this Post and many Comments.
+     *
+     * `mappedBy = "post"`: This is the most critical part. It tells Hibernate that
+     * this side (Post) is the INVERSE side of the relationship and that the
+     * OWNING side is the `Comment` entity. The mapping details (like the join column)
+     * should be looked for on the 'post' field within the `Comment` class.
+     * This prevents the creation of a separate join table.
+     *
+     * Fetching: By default, @OneToMany relationships are LAZILY fetched. This means
+     * the list of comments will only be loaded from the database when we explicitly
+     * access it (e.g., by calling post.getComments()). This is a performance optimization.
      */
-    @ManyToOne
-    /**
-     * The @JoinColumn annotation specifies the foreign key column in the 'post' table.
-     * The 'name' attribute defines the name of the foreign key column, which will be 'user_id'.
-     * The 'referencedColumnName' attribute (which we are omitting here for simplicity,
-     * as JPA can infer it) would specify which column in the 'user' table this foreign key
-     * refers to (by default, it's the primary key, 'id').
-     */
-    @JoinColumn(name = "user_id")
-    private User user; // This field represents the author of the post.
+    @OneToMany(mappedBy = "post")
+    private List<Comment> comments = new ArrayList<>(); // Initialize to avoid NullPointerExceptions
 
     public Post() {
     }
 
     // --- Getters and Setters ---
+    // (Existing getters and setters for id, title, content, createdAt, user)
 
-    // ... (existing getters and setters for id, title, content, createdAt)
-
-    // --- NEW: Getters and setters for the user field ---
-
-    public User getUser() {
-        return user;
+    // --- NEW: Getters and setters for the comments list ---
+    public List<Comment> getComments() {
+        return comments;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
     }
 
-    // The existing getters and setters remain unchanged below.
+    // The rest of the existing getters and setters remain unchanged below.
     public Long getId() {
         return id;
     }
@@ -94,5 +99,13 @@ public class Post {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }
