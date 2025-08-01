@@ -1,8 +1,11 @@
 package com.blogplatform.simpleblogplatform.service;
 
-// Import the PostRepository so we can use it.
+// Import the necessary classes
+import com.blogplatform.simpleblogplatform.model.Post;
 import com.blogplatform.simpleblogplatform.repository.PostRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.List; // NEW: Import the List interface from java.util
 
 /**
  * The PostService class contains the business logic for Post-related operations.
@@ -11,20 +14,26 @@ import org.springframework.stereotype.Service;
 @Service
 public class PostService {
 
-    // --- NEW: Declare the dependency ---
-    // We declare the repository as a private and final field.
-    // 'final' ensures that it's initialized only once, via the constructor,
-    // making our service more robust.
     private final PostRepository postRepository;
 
-    // --- NEW: Use Constructor Injection ---
-    // Spring will automatically "inject" an instance of PostRepository
-    // into this constructor when creating the PostService bean.
-    // Since Spring 4.3, if a class has only one constructor, the @Autowired
-    // annotation can be omitted. This is the recommended approach.
     public PostService(PostRepository postRepository) {
         this.postRepository = postRepository;
     }
 
-    // In the next tasks, we will add methods here that use the postRepository.
+    // --- NEW: Implement the method to find all posts ---
+    /**
+     * Retrieves all Post entities from the database.
+     * This method delegates the call directly to the PostRepository's findAll() method.
+     * The service layer here acts as a pass-through for this simple operation,
+     * but could contain more complex logic in a real-world scenario (e.g., filtering, sorting).
+     *
+     * @return a List of all Post objects. The list will be empty if no posts are found, not null.
+     */
+    public List<Post> findAllPosts() {
+        // The findAll() method is provided by the JpaRepository interface.
+        // Spring Data JPA automatically implements this method for us at runtime.
+        // It executes a "SELECT * FROM post" query (or its Hibernate JPQL equivalent)
+        // and maps each row of the result set to a Post object, collecting them into a List.
+        return postRepository.findAll();
+    }
 }
