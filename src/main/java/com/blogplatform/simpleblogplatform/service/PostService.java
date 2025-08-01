@@ -4,7 +4,7 @@ import com.blogplatform.simpleblogplatform.model.Post;
 import com.blogplatform.simpleblogplatform.repository.PostRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime; // NEW: Import LocalDateTime for timestamping
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -39,21 +39,30 @@ public class PostService {
                 .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
     }
 
-    // --- NEW: Implement the method to save (create or update) a post ---
     /**
      * Saves a Post entity. This method handles both creation of new posts
      * and updates to existing ones.
-     *
      * @param post The Post object to save. If post.id is null, it's a new post.
      * @return The saved Post entity, which will include the auto-generated ID if it was a new post.
      */
     public Post savePost(Post post) {
-        // Enforce a business rule: set the creation timestamp only for new posts.
         if (post.getId() == null) {
             post.setCreatedAt(LocalDateTime.now());
         }
-        // Delegate the actual save operation to the repository.
-        // The save() method intelligently handles both INSERT and UPDATE.
         return postRepository.save(post);
+    }
+
+    // --- NEW: Implement the method to delete a post ---\
+    /**
+     * Deletes a Post from the database by its ID.
+     * This method delegates directly to the repository's deleteById method.
+     *
+     * @param id The primary key of the post to be deleted.
+     */
+    public void deletePostById(Long id) {
+        // The deleteById() method is provided by JpaRepository.
+        // It executes a \"DELETE FROM post WHERE id = ?\" query.
+        // It has a void return type, as it does not return any data.
+        postRepository.deleteById(id);
     }
 }
