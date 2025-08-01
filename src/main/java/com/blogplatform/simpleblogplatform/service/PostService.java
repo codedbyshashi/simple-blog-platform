@@ -36,4 +36,25 @@ public class PostService {
         // and maps each row of the result set to a Post object, collecting them into a List.
         return postRepository.findAll();
     }
+
+    // --- NEW: Implement the method to find a single post by its ID ---
+    /**
+     * Finds a single Post by its ID.
+     * This method leverages the findById method from JpaRepository, which returns an Optional.
+     *
+     * @param id The primary key of the post to find.
+     * @return The found Post object.
+     * @throws RuntimeException if no post is found with the given ID. This signals a "not found" state.
+     */
+    public Post findPostById(Long id) {
+        // The findById() method executes a "SELECT * FROM post WHERE id = ?" query.
+        // It returns an Optional<Post> to gracefully handle the case where no post matches the ID.
+        return postRepository.findById(id)
+                // The orElseThrow() method is the perfect tool for this scenario.
+                // If the Optional contains a Post, it returns the Post.
+                // If the Optional is empty, it throws the exception provided by the lambda expression.
+                // For now, we use a generic RuntimeException. Later in the project, we will create
+                // a custom 'ResourceNotFoundException' for more specific global error handling.
+                .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
+    }
 }
