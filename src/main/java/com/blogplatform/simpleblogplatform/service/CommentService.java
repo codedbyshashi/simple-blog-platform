@@ -1,8 +1,10 @@
 package com.blogplatform.simpleblogplatform.service;
 
-// Import the CommentRepository so we can declare it as a dependency.
+import com.blogplatform.simpleblogplatform.model.Comment; // NEW: Import the Comment model
 import com.blogplatform.simpleblogplatform.repository.CommentRepository;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime; // NEW: Import LocalDateTime for timestamping
 
 /**
  * The CommentService class encapsulates the business logic for all operations
@@ -11,20 +13,28 @@ import org.springframework.stereotype.Service;
 @Service
 public class CommentService {
 
-    // --- NEW: Declare the repository as a final field ---
-    // This establishes that CommentService has a dependency on CommentRepository.
-    // 'private' ensures encapsulation.
-    // 'final' ensures that the dependency is immutable once assigned via the constructor.
     private final CommentRepository commentRepository;
 
-    // --- NEW: Implement Constructor Injection ---
-    // This is the constructor for the CommentService. Spring's IoC container will see this
-    // and know that to create a CommentService bean, it must first provide a CommentRepository bean.
-    // Since Spring 4.3, if a class has only one constructor, the @Autowired annotation is implicit and can be omitted.
     public CommentService(CommentRepository commentRepository) {
-        // Assign the injected repository bean to our final field.
         this.commentRepository = commentRepository;
     }
 
-    // In the next task, we will add methods here that use the injected commentRepository.
+    // --- NEW: Implement the method to save a comment ---
+    /**
+     * Saves a Comment entity to the database.
+     * This method handles the creation of new comments.
+     *
+     * @param comment The Comment object to be saved. It is expected that the 'post' and 'user'
+     *                properties are already set on this object before it's passed to the service.
+     * @return The saved Comment entity, which will now include its auto-generated ID and createdAt timestamp.
+     */
+    public Comment saveComment(Comment comment) {
+        // Enforce the business rule: set the creation timestamp for all new comments.
+        // We assume any comment passed to this service is a new one.
+        comment.setCreatedAt(LocalDateTime.now());
+
+        // Delegate the persistence operation to the repository. The save() method
+        // will perform a SQL INSERT and return the managed entity with the populated ID.
+        return commentRepository.save(comment);
+    }
 }
