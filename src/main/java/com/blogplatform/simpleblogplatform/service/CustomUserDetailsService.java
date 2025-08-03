@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This service is responsible for loading user-specific data.
@@ -19,10 +21,8 @@ import java.util.List;
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
-    // Inject the UserRepository to fetch user data from the database.
     private final UserRepository userRepository;
 
-    // Use constructor injection for the dependency.
     public CustomUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
@@ -35,25 +35,40 @@ public class CustomUserDetailsService implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // 1. Fetch our custom User entity from the database using the repository.
+        // --- NEW LOGIC START ---
+
+        // Step 1: Fetch our custom User entity from the database.
+        // We use the findByUsername method we defined in our UserRepository.
+        // This method returns an Optional<User>, which is a container that may or may not
+        // hold a non-null User object. This is a modern, null-safe way to handle lookups.
         User user = userRepository.findByUsername(username)
+                // Step 2: Handle the case where the user is not found.
+                // The orElseThrow() method is called on the Optional. If the Optional is empty,
+                // it executes the provided lambda, which throws the required exception.
+                // This fulfills the contract of the UserDetailsService.
                 .orElseThrow(() ->
                         new UsernameNotFoundException("User not found with username: " + username));
 
-        // 2. Get the user's role and convert it into a GrantedAuthority.
-        // Spring Security requires roles to be in the format 'ROLE_YOUR_ROLE'.
-        // We will store roles as "ADMIN" or "USER" in the database and add the prefix here.
-        // For now, we will use the role from the User entity. If the role field is empty,
-        // we can assign a default role. Let's create a simple authority list.
-        // In the next step on Role-Based Access Control, we will make this more robust.
-        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().toUpperCase()));
+        // Step 3: Convert the user's role into a collection of GrantedAuthority objects.
+        // Spring Security uses GrantedAuthority to represent permissions. The standard convention
+        // is to prefix roles with "ROLE_". This allows us to use role-based security expressions
+        // like .hasRole("ADMIN") in our security configuration.
+        List<GrantedAuthority> authorities = Collections.singletonList(
+                new SimpleGrantedAuthority("ROLE_" + user.getRole().toUpperCase())
+        );
 
-        // 3. Create and return a Spring Security UserDetails object.
-        // This is an object that Spring Security understands. We map the fields from our
-        // custom User entity to this standard security User object.
+        // Step 4: Create and return a Spring Security UserDetails object.
+        // We use the built-in org.springframework.security.core.userdetails.User class,
+        // which is a convenient implementation of the UserDetails interface.
+        // We provide it with the three essential pieces of information for authentication:
+        // 1. Username: The user's principal name.
+        // 2. Password: The user's HASHED password from our database. Spring Security will
+        //    compare this against a hash of the password the user submitted.
+        // 3. Authorities: The collection of roles/permissions the user has.
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
                 authorities);
+        // --- NEW LOGIC END ---
     }
 }
