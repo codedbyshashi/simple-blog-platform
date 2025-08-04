@@ -2,16 +2,13 @@ package com.blogplatform.simpleblogplatform.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity; // NEW: Import HttpSecurity
+import org.springframework.http.HttpMethod; // NEW: Import HttpMethod
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain; // NEW: Import SecurityFilterChain
+import org.springframework.security.web.SecurityFilterChain;
 
-/**
- * SecurityConfig is the central place for configuring all security-related
- * aspects of the application.
- */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -21,52 +18,48 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // --- NEW: Define the SecurityFilterChain bean ---
-    /**
-     * Configures the security filter chain that defines the application's security rules.
-     * This is the central place to configure which URLs are public and which are protected.
-     *
-     * @param http The HttpSecurity object to be configured. Spring automatically provides this.
-     * @return The configured SecurityFilterChain.
-     * @throws Exception if an error occurs during configuration.
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // .authorizeHttpRequests() is where we start configuring URL-based authorization.
                 .authorizeHttpRequests(authorize -> authorize
-                        // Use requestMatchers to specify URL patterns. We use Ant-style path patterns.
-                        // "/", "/posts/**", "/register", "/css/**", "/js/**" are made public.
-                        // - "/": The home page.
-                        // - "/posts/**": Any URL starting with /posts, allowing access to post detail pages like /posts/1, /posts/2, etc.
-                        // - "/register": The user registration page.
-                        // - "/css/**", "/js/**": All CSS and JavaScript files must be public for the site to render correctly.
-                        .requestMatchers("/", "/posts/**", "/register", "/css/**", "/js/**").permitAll()
+                                // --- NEW AUTHORIZATION RULES START ---
 
-                        // .anyRequest().authenticated() is a catch-all rule. It specifies that any request
-                        // that has not been explicitly permitted above must be authenticated. This is a secure-by-default
-                        // approach, ensuring no endpoints are accidentally left unprotected.
-                        .anyRequest().authenticated()
+                                // Rule 1: Secure the Admin Dashboard
+                                // Any URL starting with /admin/ requires the user to have the 'ADMIN' role.
+                                // This is our most specific rule, so it comes first.
+                                .requestMatchers("/admin/**").hasRole("ADMIN")
+
+                                // Rule 2: Secure Comment Creation
+                                // To create a comment, a user will likely POST to an endpoint. Let's assume
+                                // this endpoint is /posts/{postId}/comments. We only want authenticated
+                                // users with the 'USER' role to be able to do this.
+                                // We specify HttpMethod.POST to make the rule precise.
+                                .requestMatchers(HttpMethod.POST, "/posts/*/comments").hasRole("USER")
+
+                                // Rule 3: Refine Public Access
+                                // We will now be more specific about public URLs. Anyone can view the homepage,
+                                // list of posts, and individual posts using the GET method.
+                                .requestMatchers(HttpMethod.GET, "/", "/posts", "/posts/**").permitAll()
+
+                                // Other public pages like registration and static resources remain fully public.
+                                .requestMatchers("/register", "/login", "/css/**", "/js/**").permitAll()
+
+                                // Rule 4: The Catch-All Rule
+                                // Any other request that hasn't been matched yet must be authenticated.
+                                // This is a crucial security best practice (secure by default).
+                                .anyRequest().authenticated()
+
+                        // --- NEW AUTHORIZATION RULES END ---
                 )
-                // .formLogin() configures form-based authentication.
                 .formLogin(formLogin -> formLogin
-                        // .loginPage("/login") specifies the URL of our custom login page.
-                        // Spring Security will automatically redirect unauthenticated users trying to access
-                        // a protected page to this URL.
                         .loginPage("/login")
-
-                        // We must also permit all traffic to the login page itself.
                         .permitAll()
                 )
-                // .logout() configures logout behavior.
                 .logout(logout -> logout
-                        // .permitAll() allows any user to access the logout functionality.
                         .permitAll()
-                        // You can also specify a URL to redirect to after logout.
                         .logoutSuccessUrl("/")
                 );
 
-        // Build and return the configured HttpSecurity object.
         return http.build();
     }
 }
