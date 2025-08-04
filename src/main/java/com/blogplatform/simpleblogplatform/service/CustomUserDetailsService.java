@@ -19,32 +19,29 @@ import java.util.List;
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
-    // --- NEW: Declare the dependency as a private final field. ---
-    // This tells us that every instance of CustomUserDetailsService MUST have a UserRepository.
-    // 'final' ensures it's assigned once and cannot be changed later.
     private final UserRepository userRepository;
 
-    // --- NEW: Use Constructor Injection to provide the dependency. ---
-    // This is the single constructor for our service. Spring sees this and knows
-    // that to create a CustomUserDetailsService bean, it must first find a UserRepository
-    // bean to "inject" into this constructor.
-    // Since Spring 4.3, if a class has only one constructor, @Autowired is not needed.
     public CustomUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
-    /**
-     * This method is now fully functional because the 'userRepository' field
-     * will be initialized by Spring.
-     */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // Step 1: Fetch our custom User entity from the database. This remains the same.
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() ->
                         new UsernameNotFoundException("User not found with username: " + username));
 
+        // --- THIS IS THE LINE TO UPDATE ---
+        // OLD (example): List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+
+        // NEW: Dynamically create the GrantedAuthority from the user's role field.
+        // We fetch the role string from our User entity, convert it to uppercase,
+        // and prefix it with "ROLE_" to adhere to Spring Security conventions.
+        // This makes our authorization mechanism dynamic and data-driven.
         List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().toUpperCase()));
 
+        // Step 3: Create and return a Spring Security UserDetails object. This remains the same.
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
