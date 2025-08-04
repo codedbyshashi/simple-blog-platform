@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Blog Platform</title>
+</head>
+<body>
+
+<h1>Welcome to the Blog!</h1>
+
+<!--
+    This is our main content block. We use a Thymeleaf utility function
+    to check if the list of posts is empty or not.
+-->
+<div th:if="${!posts.isEmpty()}">
+    <h2>Recent Posts</h2>
+    <ul>
+        <!--
+            This is the core of our dynamic content. The th:each attribute is Thymeleaf's
+            equivalent of a for-each loop.
+            - It iterates over the collection found in the model with the key "posts".
+              This `${posts}` expression directly accesses the List<Post> that you added
+              to the Model in your PostController.
+            - For each item in the collection, it creates a temporary variable named "post".
+            - The <li> element and its contents will be repeated for every post in the list.
+        -->
+        <li th:each="post : ${posts}">
+            <!--
+                The th:text attribute safely sets the text content of this <h2> tag.
+                - It accesses the 'title' property of the current "post" loop variable.
+                  Thymeleaf is smart enough to call the getTitle() method on your Post object.
+                - Using th:text is a security best practice as it automatically escapes
+                  any HTML characters in the title, preventing Cross-Site Scripting (XSS) attacks.
+            -->
+            <h2 th:text="${post.title}">Post Title</h2>
+            <p th:text="${post.content}">Post content will go here...</p>
+        </li>
+    </ul>
+</div>
+
+<!--
+    This block will only be displayed if the condition in the th:if attribute is true.
+    - Here, we check if the 'posts' list from the model is empty.
+    - This provides a helpful message to the user if there are no blog posts to show yet.
+-->
+<div th:if="${posts.isEmpty()}">
+    <p>No posts have been published yet. Check back soon!</p>
+</div>
+
+</body>
+</html>
