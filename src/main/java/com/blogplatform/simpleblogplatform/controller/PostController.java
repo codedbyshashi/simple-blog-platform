@@ -6,6 +6,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable; // NEW: Import PathVariable
+import com.blogplatform.simpleblogplatform.dto.CommentDto; // NEW: Import the DTO
+
 
 import java.util.List;
 
