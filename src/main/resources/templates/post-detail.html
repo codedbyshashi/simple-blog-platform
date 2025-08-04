@@ -1,32 +1,20 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+    NEW: Add the 'sec' namespace for the Spring Security dialect.
+    This is essential to activate attributes like sec:authorize.
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
-  <!-- The title of the page will be the post's title itself! -->
   <title th:text="${post.title}">Post Title</title>
 </head>
 <body>
 
-<!-- Main Post Content Section -->
+<!-- Main Post Content Section (No Changes Here) -->
 <article>
-  <!-- Display the post's title as the main heading -->
   <h1 th:text="${post.title}">Post Title Goes Here</h1>
-
-  <!--
-      Display the post's creation date.
-      Thymeleaf has a special #temporals utility object for formatting dates and times.
-      Here, we format the 'createdAt' LocalDateTime object into a more readable string.
-  -->
   <p><em>Posted on <span th:text="${#temporals.format(post.createdAt, 'MMMM dd, yyyy')}">January 01, 2023</span></em></p>
-
-  <!--
-      Display the post's content. We use 'th:utext' here instead of 'th:text'.
-      - th:text escapes HTML, meaning <p>text</p> would be displayed as literal text.
-      - th:utext (unescaped text) renders HTML. This allows admins to use simple tags
-        like <p>, <b>, or <i> in the post content for basic formatting.
-      - IMPORTANT: Only use th:utext with trusted content (like from an admin) to avoid
-        Cross-Site Scripting (XSS) vulnerabilities.
-  -->
   <div th:utext="${post.content}">
     <p>This is where the full content of the blog post will appear.</p>
   </div>
@@ -34,35 +22,61 @@
 
 <hr/>
 
-<!-- Comments Section -->
+<!-- Comments Section (No Changes Here) -->
 <section>
   <h2>Comments</h2>
-
-  <!--
-      Conditionally display the list of comments only if it's not empty.
-      This prevents rendering an empty list and improves the user experience.
-  -->
+  <!-- ... existing comment display logic ... -->
   <div th:if="${!post.comments.isEmpty()}">
-    <!-- Iterate over the 'comments' list associated with our 'post' object -->
     <div th:each="comment : ${post.comments}" style="margin-bottom: 20px; border-left: 2px solid #ccc; padding-left: 15px;">
       <p th:text="${comment.content}">This is a comment.</p>
       <small>
-        <!--
-            We can traverse the object graph from comment -> user -> username.
-            This is possible because of the @ManyToOne relationship you defined in the Comment entity.
-        -->
         Comment by: <strong th:text="${comment.user != null ? comment.user.username : 'Anonymous'}">Username</strong>
         on <span th:text="${#temporals.format(comment.createdAt, 'MMM dd, yyyy HH:mm')}">Date</span>
       </small>
     </div>
   </div>
-
-  <!--
-      Conditionally display a message if the comments list IS empty.
-      This provides a clear call to action for the user.
-  -->
   <div th:if="${post.comments.isEmpty()}">
     <p>No comments yet. Be the first to share your thoughts!</p>
+  </div>
+</section>
+
+<hr/>
+
+<!-- --- NEW: ADD COMMENT FORM SECTION --- -->
+<section>
+  <h3>Leave a Comment</h3>
+
+  <!-- This block is ONLY visible to authenticated (logged-in) users. -->
+  <div sec:authorize="isAuthenticated()">
+    <!--
+        The form for submitting a new comment.
+        - th:action dynamically builds the submission URL for this specific post.
+        - th:object binds this form to the 'newComment' DTO we added in the controller.
+    -->
+    <form th:action="@{/posts/{postId}/comments(postId=${post.id})}" th:object="${newComment}" method="post">
+      <div>
+        <label for="comment-content">Your Comment:</label>
+      </div>
+      <div>
+        <!--
+            th:field binds this textarea to the 'content' field of the 'newComment' object.
+            It automatically handles the 'id', 'name', and 'value' attributes.
+            The *{...} syntax is a "selection" expression that operates on the th:object.
+        -->
+        <textarea id="comment-content" th:field="*{content}" rows="5" cols="50" required></textarea>
+      </div>
+      <div>
+        <button type="submit">Submit Comment</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- This block is ONLY visible to anonymous (guest) users. -->
+  <div sec:authorize="isAnonymous()">
+    <p>
+      <!-- We use th:href to create a link to our login page. -->
+      <a th:href="@{/login}">Log in</a> to leave a comment.
+    </p>
   </div>
 </section>
 
