@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <!-- The title of the page will be the post's title itself! -->
+  <title th:text="${post.title}">Post Title</title>
+</head>
+<body>
+
+<!-- Main Post Content Section -->
+<article>
+  <!-- Display the post's title as the main heading -->
+  <h1 th:text="${post.title}">Post Title Goes Here</h1>
+
+  <!--
+      Display the post's creation date.
+      Thymeleaf has a special #temporals utility object for formatting dates and times.
+      Here, we format the 'createdAt' LocalDateTime object into a more readable string.
+  -->
+  <p><em>Posted on <span th:text="${#temporals.format(post.createdAt, 'MMMM dd, yyyy')}">January 01, 2023</span></em></p>
+
+  <!--
+      Display the post's content. We use 'th:utext' here instead of 'th:text'.
+      - th:text escapes HTML, meaning <p>text</p> would be displayed as literal text.
+      - th:utext (unescaped text) renders HTML. This allows admins to use simple tags
+        like <p>, <b>, or <i> in the post content for basic formatting.
+      - IMPORTANT: Only use th:utext with trusted content (like from an admin) to avoid
+        Cross-Site Scripting (XSS) vulnerabilities.
+  -->
+  <div th:utext="${post.content}">
+    <p>This is where the full content of the blog post will appear.</p>
+  </div>
+</article>
+
+<hr/>
+
+<!-- Comments Section -->
+<section>
+  <h2>Comments</h2>
+
+  <!--
+      Conditionally display the list of comments only if it's not empty.
+      This prevents rendering an empty list and improves the user experience.
+  -->
+  <div th:if="${!post.comments.isEmpty()}">
+    <!-- Iterate over the 'comments' list associated with our 'post' object -->
+    <div th:each="comment : ${post.comments}" style="margin-bottom: 20px; border-left: 2px solid #ccc; padding-left: 15px;">
+      <p th:text="${comment.content}">This is a comment.</p>
+      <small>
+        <!--
+            We can traverse the object graph from comment -> user -> username.
+            This is possible because of the @ManyToOne relationship you defined in the Comment entity.
+        -->
+        Comment by: <strong th:text="${comment.user != null ? comment.user.username : 'Anonymous'}">Username</strong>
+        on <span th:text="${#temporals.format(comment.createdAt, 'MMM dd, yyyy HH:mm')}">Date</span>
+      </small>
+    </div>
+  </div>
+
+  <!--
+      Conditionally display a message if the comments list IS empty.
+      This provides a clear call to action for the user.
+  -->
+  <div th:if="${post.comments.isEmpty()}">
+    <p>No comments yet. Be the first to share your thoughts!</p>
+  </div>
+</section>
+
+</body>
+</html>
