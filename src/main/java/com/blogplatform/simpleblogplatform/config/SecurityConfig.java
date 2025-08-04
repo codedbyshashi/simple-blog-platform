@@ -2,6 +2,7 @@ package com.blogplatform.simpleblogplatform.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod; // NEW: Import HttpMethod for specifying request types
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,18 +22,25 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        // --- NEW AUTHORIZATION RULE ---
-                        // Rule 1: Secure the Admin Dashboard.
-                        // This is our most specific rule, so it must come first.
-                        // Any URL starting with /admin/ now requires the user to have the 'ADMIN' role.
+                        // Rule 1: Secure the Admin Dashboard (from the previous task)
                         .requestMatchers("/admin/**").hasRole("ADMIN")
 
-                        // Existing Public Access Rules: These rules come after the more specific admin rule.
-                        .requestMatchers("/", "/posts/**", "/register", "/css/**", "/js/**").permitAll()
+                        // --- NEW RULE ---
+                        // Rule 2: Secure the action of submitting a new comment.
+                        // We use HttpMethod.POST to specify that this rule only applies to form submissions.
+                        // The path "/posts/*/comments" uses a wildcard (*) to match any post ID.
+                        // We use hasAnyRole to allow both standard USERS and ADMINS to comment.
+                        .requestMatchers(HttpMethod.POST, "/posts/*/comments").hasAnyRole("USER", "ADMIN")
 
-                        // Rule 2: The Catch-All Rule.
-                        // Any other request that hasn't been matched yet must be authenticated.
-                        // This is a crucial security best practice (secure by default).
+                        // --- REFINED PUBLIC ACCESS RULE ---
+                        // Rule 3: Refine Public Access. We explicitly state that only GET requests are public.
+                        // This prevents users from trying to POST, PUT, or DELETE to these URLs without being authenticated.
+                        .requestMatchers(HttpMethod.GET, "/", "/posts", "/posts/**").permitAll()
+
+                        // Other public pages and resources
+                        .requestMatchers("/register", "/login", "/css/**", "/js/**").permitAll()
+
+                        // Rule 4: The Catch-All Rule
                         .anyRequest().authenticated()
                 )
                 .formLogin(formLogin -> formLogin
