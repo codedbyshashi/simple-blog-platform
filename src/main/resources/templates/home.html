@@ -1,8 +1,4 @@
 <!DOCTYPE html>
-<!--
-  The xmlns:th attribute is the Thymeleaf namespace.
-  It's essential for activating Thymeleaf's special attributes in this file.
--->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -12,43 +8,29 @@
 
 <h1>Welcome to the Blog!</h1>
 
-<!--
-  This is a conditional block. The content inside this div will only be rendered
-  if the condition in th:if is true. We use the ! operator to check if the 'posts'
-  list from our model is NOT empty. This prevents errors and keeps the UI clean.
--->
 <div th:if="${!posts.isEmpty()}">
     <h2>Recent Posts</h2>
     <ul>
-        <!--
-            This is the core of our dynamic content. The th:each attribute is Thymeleaf's
-            equivalent of a for-each loop.
-            - It iterates over the collection found in the model with the key "posts".
-              This `${posts}` expression directly accesses the List<Post> that you added
-              to the Model in your PostController.
-            - For each item in the collection, it creates a temporary variable named "post".
-            - The <li> element and all its children will be repeated for every post in the list.
-        -->
         <li th:each="post : ${posts}">
+            <!-- --- CHANGES START HERE --- -->
             <!--
-                The th:text attribute safely sets the text content of this <h2> tag.
-                - It accesses the 'title' property of the current "post" loop variable.
-                  Thymeleaf is smart enough to call the getTitle() method on your Post object.
-                - Using th:text is a security best practice as it automatically escapes
-                  any HTML characters in the title, preventing Cross-Site Scripting (XSS) attacks.
-                - The text "Post Title" inside the tag is a natural template. It's a placeholder
-                  that will be completely replaced by Thymeleaf during rendering.
+                We are now wrapping the post title in an anchor (<a>) tag to make it a link.
+                The 'th:href' attribute is used to dynamically generate the URL.
+                - @{...} is Thymeleaf's syntax for creating URLs.
+                - '/posts/{id}' is our URL template with a placeholder for the post's ID.
+                - (id=${post.id}) is where we provide the value for the {id} placeholder.
+                  This fetches the ID from the current 'post' object in the loop.
+                - The result for a post with ID 1 will be a link to "/posts/1".
             -->
-            <h2 th:text="${post.title}">Post Title</h2>
+            <a th:href="@{/posts/{id}(id=${post.id})}">
+                <h2 th:text="${post.title}">Post Title</h2>
+            </a>
+            <!-- --- CHANGES END HERE --- -->
+            <p th:text="${post.content}">Post content will go here...</p>
         </li>
     </ul>
 </div>
 
-<!--
-    This block handles the alternative case. It will only be displayed if the condition
-    in the th:if attribute is true. Here, we check if the 'posts' list is empty.
-    This provides a helpful message to the user if there are no blog posts yet.
--->
 <div th:if="${posts.isEmpty()}">
     <p>No posts have been published yet. Check back soon!</p>
 </div>
