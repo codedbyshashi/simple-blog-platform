@@ -1,46 +1,40 @@
 package com.blogplatform.simpleblogplatform.model;
 
-// Import the necessary JPA annotations.
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import java.util.List;
 
-/**
- * Represents a user entity in the application.
- * The @Entity annotation makes this a managed JPA entity.
- */
-@Entity // <-- NEW: Mark this class as a JPA entity.
+@Entity
+// We explicitly name the table 'users' because 'user' is often a reserved keyword in SQL databases.
+@Table(name = "users")
 public class User {
 
-    // @Id marks this field as the primary key.
     @Id
-    // @GeneratedValue configures the primary key generation strategy.
-    // GenerationType.IDENTITY delegates ID generation to the database's auto-increment column.
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // <-- NEW: Configure auto-generation.
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
-    // The user's unique name for logging in. We will later add a database constraint
-    // to ensure no two users can have the same username.
+    @Column(nullable = false, unique = true)
     private String username;
 
-    // The user's password. CRITICAL: We will NEVER store this as plain text.
-    // This field will hold a cryptographically hashed version of the password.
-    // The actual hashing will be handled by Spring Security later.
+    @Column(nullable = false)
     private String password;
 
-    // The user's role, which determines their permissions (e.g., "ROLE_USER", "ROLE_ADMIN").
-    // This is the foundation of our authorization logic.
+    // --- NEW FIELD ---
+    // This field will store the user's role, for example, "USER" or "ADMIN".
+    // It's a simple yet effective way to implement role-based access control for our application.
+    @Column(nullable = false)
     private String role;
 
-    // A no-argument constructor, required by JPA for creating entity instances
-    // when fetching them from the database.
-    public User() {
-    }
+    // --- RELATIONSHIPS ---
+    // A single user can author many posts.
+    @OneToMany(mappedBy = "user")
+    private List<Post> posts;
 
-    // --- Getters and Setters ---
-    // Standard JavaBeans convention for providing controlled access to private fields.
+    // A single user can write many comments.
+    @OneToMany(mappedBy = "user")
+    private List<Comment> comments;
+
+    // --- GETTERS AND SETTERS ---
+    // Standard getter and setter methods for all fields.
 
     public Long getId() {
         return id;
@@ -66,11 +60,28 @@ public class User {
         this.password = password;
     }
 
+    // --- NEW GETTERS AND SETTERS FOR THE 'role' FIELD ---
     public String getRole() {
         return role;
     }
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public List<Post> getPosts() {
+        return posts;
+    }
+
+    public void setPosts(List<Post> posts) {
+        this.posts = posts;
+    }
+
+    public List<Comment> getComments() {
+        return comments;
+    }
+
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
     }
 }
