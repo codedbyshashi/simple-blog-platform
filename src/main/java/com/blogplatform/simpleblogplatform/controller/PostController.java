@@ -58,6 +58,7 @@ public class PostController {
 
         // Step 3: Return the name of the detail view template.
         // Spring's ViewResolver will look for a template named "post-detail.html".
+        model.addAttribute("newComment", new CommentDto());
         return "post-detail";
     }
     // --- NEW METHOD END ---
