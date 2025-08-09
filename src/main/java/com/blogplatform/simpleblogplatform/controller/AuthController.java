@@ -35,6 +35,16 @@ public class AuthController {
         model.addAttribute("user", new User());
         return "register";
     }
+    // Add this method inside AuthController.java
+
+    /**
+     * Displays the custom login page.
+     * @return The logical name of the login view template.
+     */
+    @GetMapping("/login")
+    public String showLoginPage() {
+        return "login";
+    }
 
     /**
      * Processes the submission of the registration form.
