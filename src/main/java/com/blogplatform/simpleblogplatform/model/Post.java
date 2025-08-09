@@ -108,4 +108,8 @@ public class Post {
     public void setUser(User user) {
         this.user = user;
     }
+
+    public Post orElseThrow(Object o) {
+        return null;
+    }
 }

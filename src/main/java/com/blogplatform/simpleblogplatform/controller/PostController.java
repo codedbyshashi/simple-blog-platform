@@ -45,12 +45,12 @@ public class PostController {
         // Step 1: Use the 'id' to fetch the specific post from the PostService.
         // It's a best practice for service methods to return an Optional to handle
         // the case where a post with the given ID doesn't exist.
-        Post post = postService.findPostById(id)
+        Post post = postService.findPostById(id);
                 // If the post is not found, we could throw an exception which could
                 // be handled by a @ControllerAdvice to show a custom 404 page.
                 // For now, we'll assume the post exists. A more robust implementation
                 // will be added in a later step (Error Handling).
-                .orElseThrow(() -> new IllegalArgumentException("Invalid post ID:" + id));
+
 
         // Step 2: Add the found Post object to the model.
         // We'll use the key "post" to access this object in our Thymeleaf template.
