@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+</head>
+<body>
+<h1>Create a New Account</h1>
+
+<!-- Display registration error message if it exists -->
+<div th:if="${registrationError}" style="color: red;">
+    <p th:text="${registrationError}"></p>
+</div>
+
+<!--
+    The registration form.
+    - th:action points to the POST /register endpoint in our AuthController.
+    - th:object binds this form to the 'user' object from the model.
+-->
+<form th:action="@{/register}" th:object="${user}" method="post">
+    <div>
+        <label for="username">Username:</label>
+        <!-- th:field connects this input to the 'username' field of the 'user' object. -->
+        <input type="text" id="username" th:field="*{username}" required autofocus>
+    </div>
+    <div>
+        <label for="password">Password:</label>
+        <!-- th:field connects this input to the 'password' field. -->
+        <input type="password" id="password" th:field="*{password}" required>
+    </div>
+    <div>
+        <button type="submit">Register</button>
+    </div>
+</form>
+
+<p>Already have an account? <a th:href="@{/login}">Log in here</a>.</p>
+
+</body>
+</html>
